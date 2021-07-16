@@ -16,6 +16,21 @@ cc_library(
 )
 
 fhe_cc_library(
+    name = "stack_machine_tfhe",
+    src = "stack_machine.cc",
+    hdrs = ["stack_machine.h"],
+    num_opt_passes = 2,
+)
+
+fhe_cc_library(
+    name = "stack_machine_interpreted_tfhe",
+    src = "stack_machine.cc",
+    hdrs = ["stack_machine.h"],
+    num_opt_passes = 2,
+    transpiler_type = "interpreted_tfhe",
+)
+
+fhe_cc_library(
     name = "stack_machine_bool",
     src = "stack_machine.cc",
     hdrs = ["stack_machine.h"],
