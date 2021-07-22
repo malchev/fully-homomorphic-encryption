@@ -45,12 +45,10 @@
 #define OP_AND  'A' // pop op1, pop op2, push op1 && op2
 #define OP_OR   'O' // pop op1, pop op2, push op1 || op2
 
-// Max number of commands, counting a final END, not counting operands
-#define MAX_GAS 999
 // Max depth of operand stack
-#define MAX_OPD 999
+#define MAX_OPD 1024
 // Maximum number of commands and command-operands (i.e. "push 1" counts as 2 entries)
-#define MAX_CMD 999
+#define MAX_CMD 1024
 // Maximum number of nested function call
 #define MAX_CALLS 999
 	
@@ -66,7 +64,7 @@ struct StackMachine {
 	int step;
 
 	static int tick(StackMachine &calc, int &result);
-	static int compute(StackMachine &calc, int &result);
+	static int compute(StackMachine &calc, int max_gas, int &result);
 };
 
 #endif//STACK_MACHINE_H

@@ -223,10 +223,8 @@ int StackMachine::tick(StackMachine &calc, int &result) {
 	return STATUS_OK;
 }
 
-#pragma hls_top
-int StackMachine::compute(StackMachine &calc, int &result) {
-    #pragma hls_unroll yes
-	for (int gas = 0; gas < MAX_GAS; gas++) {
+int StackMachine::compute(StackMachine &calc, int max_gas, int &result) {
+	for (int gas = 0; (max_gas >= 0 && gas < max_gas) || (max_gas < 0); gas++) {
 		int status = tick(calc, result);
 		if (status != STATUS_OK)
 			return status;
