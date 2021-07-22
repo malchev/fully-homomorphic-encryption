@@ -13,8 +13,8 @@
 // limitations under the License.
 
 
-#ifndef BATCH_CALCULATOR_H
-#define BATCH_CALCULATOR_H
+#ifndef STACK_MACHINE_H
+#define STACK_MACHINE_H
 
 // Result codes
 #define STATUS_HALT                 -1
@@ -54,9 +54,9 @@
 // Maximum number of nested function call
 #define MAX_CALLS 999
 	
-struct BatchCalculator {
+struct StackMachine {
 
-	BatchCalculator() : top(0), call(0), step(0) {}
+	StackMachine() : top(0), call(0), step(0) {}
 
 	int commands[MAX_CMD];
 	int stack[MAX_OPD];
@@ -65,8 +65,8 @@ struct BatchCalculator {
 	int call;
 	int step;
 
-	static int tick(BatchCalculator &calc, int &result);
-	static int compute(BatchCalculator &calc, int &result);
+	static int tick(StackMachine &calc, int &result);
+	static int compute(StackMachine &calc, int &result);
 };
 
-#endif//BATCH_CALCULATOR_H
+#endif//STACK_MACHINE_H

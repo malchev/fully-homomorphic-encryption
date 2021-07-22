@@ -4,6 +4,6 @@
 #include <string>
 #include "stack_machine.h"
 
-bool BatchCalculatorParser(const std::string &prog, BatchCalculator &calc);
+bool StackMachineParser(const std::string &prog, StackMachine &calc);
 
 #endif//BATCH_CALCULATOR_PARSER_H
