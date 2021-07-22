@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
 	}
 
 	int res = 0;
-	int status = StackMachine::compute(calc, res);
+	int status = StackMachine::compute(calc, -1, res);
 	if (status == STATUS_HALT) {
 		std::cout << res << std::endl;
 	}
