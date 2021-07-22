@@ -8,8 +8,8 @@
 #include "stack_machine_parser.h"
 #include "stack_machine.h"
 
-bool BatchCalculatorParser(const std::string &prog, BatchCalculator &calc) {
-	BatchCalculator res;
+bool StackMachineParser(const std::string &prog, StackMachine &calc) {
+	StackMachine res;
 
 	std::istringstream iss(prog);
 	std::vector<std::string> tokens{std::istream_iterator<std::string>{iss},

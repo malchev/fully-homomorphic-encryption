@@ -4,7 +4,7 @@
 #include "stack_machine_parser.h"
 
 int main(int argc, char **argv) {
-	BatchCalculator calc;
+	StackMachine calc;
 
 	// Adapted from https://en.wikipedia.org/wiki/Stack-oriented_programming#Anatomy_of_some_typical_procedures
 	const char *const fib7 = \
@@ -21,13 +21,13 @@ int main(int argc, char **argv) {
 		std::cout << "Using following program to compute the 7th fibonacci number:" << std::endl << prog << std::endl;
 	}
 
-	if (!BatchCalculatorParser(std::string(prog), calc)) {
+	if (!StackMachineParser(std::string(prog), calc)) {
 		std::cerr << "Invalid program" << std::endl;
 		return 1;
 	}
 
 	int res = 0;
-	int status = BatchCalculator::compute(calc, res);
+	int status = StackMachine::compute(calc, res);
 	if (status == STATUS_HALT) {
 		std::cout << res << std::endl;
 	}

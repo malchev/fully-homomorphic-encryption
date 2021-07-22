@@ -23,7 +23,7 @@
 #define PRINT(...) do {} while(false)
 #endif
 
-int BatchCalculator::tick(BatchCalculator &calc, int &result) {
+int StackMachine::tick(StackMachine &calc, int &result) {
 #ifdef DEBUG
 	do {
 		printf("%-8d %c:", gas, calc.commands[calc.step]);
@@ -224,7 +224,7 @@ int BatchCalculator::tick(BatchCalculator &calc, int &result) {
 }
 
 #pragma hls_top
-int BatchCalculator::compute(BatchCalculator &calc, int &result) {
+int StackMachine::compute(StackMachine &calc, int &result) {
     #pragma hls_unroll yes
 	for (int gas = 0; gas < MAX_GAS; gas++) {
 		int status = tick(calc, result);
