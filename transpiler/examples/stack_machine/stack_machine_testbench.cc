@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 
 	int res = 0;
 	int status = BatchCalculator::compute(calc, res);
-	if (status == STATUS_OK) {
+	if (status == STATUS_HALT) {
 		std::cout << res << std::endl;
 	}
 	else {
