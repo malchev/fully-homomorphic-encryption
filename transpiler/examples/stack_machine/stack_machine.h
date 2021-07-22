@@ -17,6 +17,7 @@
 #define BATCH_CALCULATOR_H
 
 // Result codes
+#define STATUS_HALT                 -1
 #define STATUS_OK                    0
 #define STATUS_MAX_COMMANDS          1
 #define STATUS_EMPTY_STACK           2
@@ -55,14 +56,16 @@
 	
 struct BatchCalculator {
 
-	BatchCalculator() : top(0), call(0) {}
+	BatchCalculator() : top(0), call(0), step(0) {}
 
 	int commands[MAX_CMD];
 	int stack[MAX_OPD];
 	int top;
 	int callstack[MAX_CALLS];
 	int call;
+	int step;
 
+	static int tick(BatchCalculator &calc, int &result);
 	static int compute(BatchCalculator &calc, int &result);
 };
 
