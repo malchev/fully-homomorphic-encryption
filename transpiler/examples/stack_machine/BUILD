@@ -4,12 +4,6 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 licenses(["notice"])
 
 cc_library(
-		name = "stack_machine_parser",
-		srcs = [ "stack_machine_parser.cc" ],
-		hdrs = [ "stack_machine_parser.h", "stack_machine.h" ],
-)
-
-cc_library(
 		name = "stack_machine",
 		srcs = [ "stack_machine.cc" ],
 		hdrs = [ "stack_machine.h" ],
@@ -38,9 +32,17 @@ fhe_cc_library(
     transpiler_type = "bool",
 )
 
+cc_library(
+		name = "stack_machine_parser",
+		srcs = [ "stack_machine_parser.cc" ],
+		copts = ["-DSTACK_MACHINE_NOIMPL"],
+		hdrs = [ "stack_machine_parser.h", "stack_machine.h" ],
+)
+
 cc_binary(
 		name = "stack_machine_testbench",
 		srcs = [ "stack_machine_testbench.cc" ],
+		copts = ["-DSTACK_MACHINE_NOIMPL"],
 		deps = [
 				":stack_machine",
 				":stack_machine_parser",
