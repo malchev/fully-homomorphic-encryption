@@ -104,6 +104,22 @@ bool StackMachineParser(const std::string &prog, StackMachine &calc) {
 			check_cmd_index(next_cmd_index);
 			calc.commands[next_cmd_index++] = OP_NOT;
 		}
+		else if (tok == "&") {
+			check_cmd_index(next_cmd_index);
+			calc.commands[next_cmd_index++] = OP_BAND;
+		}
+		else if (tok == "|") {
+			check_cmd_index(next_cmd_index);
+			calc.commands[next_cmd_index++] = OP_BOR;
+		}
+		else if (tok == "^") {
+			check_cmd_index(next_cmd_index);
+			calc.commands[next_cmd_index++] = OP_BXOR;
+		}
+		else if (tok == "~") {
+			check_cmd_index(next_cmd_index);
+			calc.commands[next_cmd_index++] = OP_BNOT;
+		}
 		else if (tok == "call") {
 			int val; parse_argument(val);
 			check_cmd_index(next_cmd_index + 1);
