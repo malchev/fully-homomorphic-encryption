@@ -27,7 +27,7 @@ fhe_cc_library(
 fhe_cc_library(
     name = "stack_machine_tick_bool",
     src = "stack_machine_tick.cc",
-    hdrs = ["stack_machine_tick.h"],
+    hdrs = ["stack_machine_tick.h", "stack_machine.h" ],
     num_opt_passes = 2,
     transpiler_type = "bool",
 )
