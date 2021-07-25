@@ -41,9 +41,13 @@
 #define OP_DUP  'd' // duplicate the top of the stack
 #define OP_SWAP 'x' // swap the two topmost stack elements
 #define OP_EQ   '=' // consumes the top two operands and pushes 1 if they are =, 0 otherwise
-#define OP_NOT  '!' // consumes the top operand and pushed !op on the stack
+#define OP_NOT  '!' // consumes the top operand and pushes !op on the stack
 #define OP_AND  'A' // pop op1, pop op2, push op1 && op2
 #define OP_OR   'O' // pop op1, pop op2, push op1 || op2
+#define OP_BNOT '~' // consumes the top operand and pushes a bitwise not
+#define OP_BAND '&' // pop op1, pop op2, push (bitwise) op1 and op2
+#define OP_BOR  '|' // pop op1, pop op2, push (bitwise) op1 or op2
+#define OP_BXOR '^' // pop op1, pop op2, push (bitwise) op1 xor op2
 
 // Max depth of operand stack
 #define MAX_OPD 1024
@@ -220,6 +224,49 @@ int StackMachine::tick(StackMachine &calc, int &result) {
 		calc.stack[calc.top] = op1 || op2;
 		calc.top++;
 	}
+	else if (cmd == OP_BNOT) {
+		if (calc.top < 1) {
+			return STATUS_NOT_ENOUGH_OPERANDS;
+		}
+		--calc.top;
+		int op1 = calc.stack[calc.top];
+		calc.stack[calc.top] = ~op1;
+		calc.top++;
+	}
+	else if (cmd == OP_BAND) {
+		if (calc.top < 2) {
+			return STATUS_NOT_ENOUGH_OPERANDS;
+		}
+		--calc.top;
+		int op1 = calc.stack[calc.top];
+		--calc.top;
+		int op2 = calc.stack[calc.top];
+		calc.stack[calc.top] = op1 & op2;
+		calc.top++;
+	}
+	else if (cmd == OP_BOR) {
+		if (calc.top < 2) {
+			return STATUS_NOT_ENOUGH_OPERANDS;
+		}
+		--calc.top;
+		int op1 = calc.stack[calc.top];
+		--calc.top;
+		int op2 = calc.stack[calc.top];
+		calc.stack[calc.top] = op1 | op2;
+		calc.top++;
+	}
+	else if (cmd == OP_BXOR) {
+		if (calc.top < 2) {
+			return STATUS_NOT_ENOUGH_OPERANDS;
+		}
+		--calc.top;
+		int op1 = calc.stack[calc.top];
+		--calc.top;
+		int op2 = calc.stack[calc.top];
+		calc.stack[calc.top] = op1 ^ op2;
+		calc.top++;
+	}
+
 	else if (cmd == OP_SWAP) {
 		if (calc.top < 2) {
 			return STATUS_NOT_ENOUGH_OPERANDS;
