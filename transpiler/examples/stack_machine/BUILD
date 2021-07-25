@@ -10,24 +10,24 @@ cc_library(
 )
 
 fhe_cc_library(
-    name = "stack_machine_tfhe",
-    src = "stack_machine.cc",
-    hdrs = ["stack_machine.h"],
+    name = "stack_machine_tick_tfhe",
+    src = "stack_machine_tick.cc",
+    hdrs = ["stack_machine_tick.h", "stack_machine.h"],
     num_opt_passes = 2,
 )
 
 fhe_cc_library(
-    name = "stack_machine_interpreted_tfhe",
-    src = "stack_machine.cc",
-    hdrs = ["stack_machine.h"],
+    name = "stack_machine_tick_interpreted_tfhe",
+    src = "stack_machine_tick.cc",
+    hdrs = [ "stack_machine_tick.h", "stack_machine.h" ],
     num_opt_passes = 2,
     transpiler_type = "interpreted_tfhe",
 )
 
 fhe_cc_library(
-    name = "stack_machine_bool",
-    src = "stack_machine.cc",
-    hdrs = ["stack_machine.h"],
+    name = "stack_machine_tick_bool",
+    src = "stack_machine_tick.cc",
+    hdrs = ["stack_machine_tick.h"],
     num_opt_passes = 2,
     transpiler_type = "bool",
 )
@@ -50,12 +50,24 @@ cc_binary(
 )
 
 cc_binary(
-    name = "stack_machine_bool_testbench",
-    srcs = ["stack_machine_bool_testbench.cc"],
+    name = "stack_machine_tick_bool_testbench",
+    srcs = ["stack_machine_tick_bool_testbench.cc"],
     deps = [
-        ":stack_machine_bool",
+        ":stack_machine_tick_bool",
 		":stack_machine_parser",
         "//transpiler/data:boolean_data",
+        "@com_google_absl//absl/container:fixed_array",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
+cc_binary(
+    name = "stack_machine_tick_tfhe_testbench",
+    srcs = ["stack_machine_tick_tfhe_testbench.cc"],
+    deps = [
+        ":stack_machine_tick_tfhe",
+		":stack_machine_parser",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
