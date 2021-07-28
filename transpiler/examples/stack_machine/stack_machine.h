@@ -81,7 +81,7 @@ struct StackMachine {
 
 #ifndef EXCLUDE_STACK_MACHINE_IMPLEMENTATION
 
-#include "stack_machine_dispatch_impl.h"
+#include "stack_machine_switch_impl.h"
 
 #else//defined EXCLUDE_STACK_MACHINE_IMPLEMENTATION
 
