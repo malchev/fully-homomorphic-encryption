@@ -61,13 +61,9 @@
 // Maximum number of nested function call
 #define MAX_CALLS 999
 
-struct StackMachine;
-typedef int (*stack_machine_handler_t)(StackMachine &calc, int &result);
-typedef int (*handle_binary_op_t)(int op1, int op2);
-	
 struct StackMachine {
 
-	StackMachine();
+	StackMachine() : top(0), call(0), step(0) {}
 
 	int commands[MAX_CMD];
 	int stack[MAX_OPD];
@@ -75,14 +71,7 @@ struct StackMachine {
 	int callstack[MAX_CALLS];
 	int call;
 	int step;
-
-	static stack_machine_handler_t dispatch[BINARY_OP_BASE];
-	static handle_binary_op_t binary_dispatch[MAX_OP - BINARY_OP_BASE];
-	static int tick(StackMachine &calc, int &result);
-	static int compute(StackMachine &calc, int max_gas, int &result);
 };
-
-#ifndef STACK_MACHINE_NOIMPL
 
 // NOTE: The fhe_cc_library bazel command can handle only one file.  Since we
 // want to build two FHE targets, one with tick() as the top function, and the
@@ -90,269 +79,15 @@ struct StackMachine {
 // the header, then include the header in one source file for each FHE type,
 // and annotate the functions in those types with #pragma hls_top.
 
-#undef DEBUG
+#ifndef EXCLUDE_STACK_MACHINE_IMPLEMENTATION
 
-#ifdef DEBUG
-#include <cstdio>
-#define PRINT(...) fprintf(stdout, __VA_ARGS__)
-#else
-#define PRINT(...) do {} while(false)
-#endif
+#include "stack_machine_dispatch_impl.h"
 
-StackMachine::StackMachine() 
-	: top(0), call(0), step(0) {
-}
+#else//defined EXCLUDE_STACK_MACHINE_IMPLEMENTATION
 
-int handle_call(StackMachine &calc, int &result) {
-	if (calc.step == MAX_CMD) {
-		return STATUS_MAX_COMMANDS;
-	}
-	if (calc.call == MAX_CALLS) {
-		return STATUS_MAX_CALLS;
-	}
-	int target = calc.commands[calc.step];
-	calc.step++;
-	calc.callstack[calc.call] = calc.step;
-	calc.call++;
-	calc.step = target;
-	return STATUS_OK;
-}
+int stack_machine_tick(StackMachine &calc, int &res);
+int stack_machine_compute(StackMachine &calc, int max_gas, int &res);
 
-int handle_ret(StackMachine &calc, int &result) {
-	if (calc.call == 0) {
-		if (calc.top == 0) {
-			return STATUS_EMPTY_STACK;
-		}
-		calc.top--;
-		result = calc.stack[calc.top];
-		return STATUS_HALT;
-	}
-	else {
-		--calc.call;
-		calc.step = calc.callstack[calc.call];
-	}
-	return STATUS_OK;
-}
-
-int handle_push(StackMachine &calc, int &result) {
-	if (calc.step == MAX_CMD) {
-		return STATUS_MAX_COMMANDS;
-	}
-	if (calc.top == MAX_OPD) {
-		return STATUS_EXCEEDED_MAX_OPERANDS;
-	}
-	int val = calc.commands[calc.step];
-	calc.step++;
-	calc.stack[calc.top] = val;
-	calc.top++;
-	return STATUS_OK;
-}
-
-int handle_pop(StackMachine &calc, int &result) {
-	if (calc.top == 0) {
-		return STATUS_EMPTY_STACK;
-	}
-	--calc.top;
-	return STATUS_OK;
-}
-
-int handle_dup(StackMachine &calc, int &result) {
-	if (calc.top == 0) {
-		return STATUS_EMPTY_STACK;
-	}
-	int top = calc.stack[calc.top-1];
-	calc.stack[calc.top] = top;
-	calc.top++;
-	return STATUS_OK;
-}
-
-int handle_j(StackMachine &calc, int &result) {
-	if (calc.step == MAX_CMD) {
-		return STATUS_MAX_COMMANDS;
-	}
-	calc.step = calc.commands[calc.step];
-	return STATUS_OK;
-}
-
-int handle_j_cond(StackMachine &calc, int &result, bool want_zero) {
-	if (calc.step == MAX_CMD) {
-		return STATUS_MAX_COMMANDS;
-	}
-	if (calc.top == 0) {
-		return STATUS_EMPTY_STACK;
-	}
-	int target = calc.commands[calc.step];
-	calc.step++;
-	--calc.top;
-	bool is_zero = !calc.stack[calc.top];
-	if (!(want_zero ^ is_zero)) {
-		calc.step = target;
-	}
-	return STATUS_OK;
-}
-
-int handle_jz(StackMachine &calc, int &result) {
-	return handle_j_cond(calc, result, true);
-}
-
-int handle_jnz(StackMachine &calc, int &result) {
-	return handle_j_cond(calc, result, false);
-}
-
-int handle_not(StackMachine &calc, int &result) {
-	if (calc.top < 1) {
-		return STATUS_NOT_ENOUGH_OPERANDS;
-	}
-	--calc.top;
-	int op1 = calc.stack[calc.top];
-	calc.stack[calc.top] = !op1;
-	calc.top++;
-	return STATUS_OK;
-}
-
-int handle_bnot(StackMachine &calc, int &result) {
-	if (calc.top < 1) {
-		return STATUS_NOT_ENOUGH_OPERANDS;
-	}
-	--calc.top;
-	int op1 = calc.stack[calc.top];
-	calc.stack[calc.top] = ~op1;
-	calc.top++;
-	return STATUS_OK;
-}
-
-int handle_swap(StackMachine &calc, int &result) {
-	if (calc.top < 2) {
-		return STATUS_NOT_ENOUGH_OPERANDS;
-	}
-	--calc.top;
-	int ontop = calc.stack[calc.top];
-	--calc.top;
-	int below = calc.stack[calc.top];
-	calc.stack[calc.top] = ontop;
-	calc.top++;
-	calc.stack[calc.top] = below;
-	calc.top++;
-	return STATUS_OK;
-}
-
-int do_add(int op1, int op2) { return op1 + op2; }
-int do_sub(int op1, int op2) { return op2 - op1; }
-int do_mul(int op1, int op2) { return op1 * op2; }
-int do_and(int op1, int op2) { return op1 && op2; }
-int do_or(int op1, int op2) { return op1 || op2; }
-int do_band(int op1, int op2) { return op1 & op2; }
-int do_bor(int op1, int op2) { return op1 | op2; }
-int do_bxor(int op1, int op2) { return op1 ^ op2; }
-int do_eq(int op1, int op2) { return op1 == op2; }
-
-#if 1 // only trivial initializers are supported
-handle_binary_op_t StackMachine::binary_dispatch[MAX_OP - BINARY_OP_BASE] = {
-	do_eq,
-	do_add,
-	do_sub,
-	do_mul,
-	do_and,
-	do_or,
-	do_band,
-	do_bor,
-	do_bxor,
-};
-#else
-handle_binary_op_t StackMachine::binary_dispatch[MAX_OP - BINARY_OP_BASE] = {
-	[OP_ADD  - BINARY_OP_BASE] = do_add,
-	[OP_SUB  - BINARY_OP_BASE] = do_sub,
-	[OP_MUL  - BINARY_OP_BASE] = do_mul,
-	[OP_AND  - BINARY_OP_BASE] = do_and,
-	[OP_OR   - BINARY_OP_BASE] = do_or,
-	[OP_BAND - BINARY_OP_BASE] = do_band,
-	[OP_BOR  - BINARY_OP_BASE] = do_bor,
-	[OP_BXOR - BINARY_OP_BASE] = do_bxor,
-	[OP_EQ   - BINARY_OP_BASE] = do_eq,
-};
-#endif
-
-int handle_binary_op(StackMachine &calc, int &result, int op) {
-	if (calc.top < 2) {
-		return STATUS_NOT_ENOUGH_OPERANDS;
-	}
-	--calc.top;
-	int op1 = calc.stack[calc.top];
-	--calc.top;
-	int op2 = calc.stack[calc.top];
-	calc.stack[calc.top] = StackMachine::binary_dispatch[op](op1, op2);
-	calc.top++;
-	return STATUS_OK;
-}
-
-#if 1 // only trivial initializers are supported
-stack_machine_handler_t StackMachine::dispatch[BINARY_OP_BASE] = {
-	handle_call, 
-	handle_ret, 
-	handle_push, 
-	handle_pop, 
-	handle_j, 
-	handle_jz, 
-	handle_jnz, 
-	handle_dup, 
-	handle_swap, 
-	handle_not, 
-	handle_bnot, 
-};
-#else
-stack_machine_handler_t StackMachine::dispatch[BINARY_OP_BASE] = {
-	[OP_CALL]  = handle_call, 
-	[OP_RET]   = handle_ret, 
-	[OP_PUSH]  = handle_push, 
-	[OP_POP]   = handle_pop, 
-	[OP_J]     = handle_j, 
-	[OP_JZ]    = handle_jz, 
-	[OP_JNZ]   = handle_jnz, 
-	[OP_DUP]   = handle_dup, 
-	[OP_SWAP]  = handle_swap, 
-	[OP_NOT]   = handle_not, 
-	[OP_BNOT]  = handle_bnot, 
-};
-#endif
-
-int StackMachine::tick(StackMachine &calc, int &result) {
-#ifdef DEBUG
-	do {
-		printf("%-8d %c:", gas, calc.commands[calc.step]);
-		for (int n = 0; n < calc.top; n++) {
-			printf(" %-8d", calc.stack[n]);
-		}
-		printf("\n");
-	} while(false);
-#endif
-
-	if (calc.step == MAX_CMD) {
-		return STATUS_MAX_COMMANDS;
-	}
-	int cmd = calc.commands[calc.step];
-	calc.step++;
-
-	if (cmd < 0) {
-		return STATUS_UNKNOWN_OPCODE;
-	}
-	if (cmd < BINARY_OP_BASE) {
-		return StackMachine::dispatch[cmd](calc, result);
-	}
-	if (cmd < MAX_OP) {
-		return handle_binary_op(calc, result, cmd - BINARY_OP_BASE);
-	}
-	return STATUS_UNKNOWN_OPCODE;
-}
-
-int StackMachine::compute(StackMachine &calc, int max_gas, int &result) {
-	for (int gas = 0; (max_gas >= 0 && gas < max_gas) || (max_gas < 0); gas++) {
-		int status = tick(calc, result);
-		if (status != STATUS_OK)
-			return status;
-	}
-	return STATUS_RAN_OUT_OF_GAS;
-}
-
-#endif//STACK_MACHINE_NOIMPL
+#endif//EXCLUDE_STACK_MACHINE_IMPLEMENTATION
 
 #endif//STACK_MACHINE_H

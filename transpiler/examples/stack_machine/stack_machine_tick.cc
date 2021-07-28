@@ -15,6 +15,6 @@
 #include "stack_machine_tick.h"
 
 #pragma hls_top
-int stack_machine_tick(StackMachine &calc, int &result) {
-	return StackMachine::tick(calc, result);
+int __stack_machine_tick(StackMachine &calc, int &res) {
+	return stack_machine_tick(calc, res);
 }
