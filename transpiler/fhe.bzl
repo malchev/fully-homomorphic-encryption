@@ -206,6 +206,7 @@ def fhe_cc_library(
         name,
         src,
         hdrs,
+        copts = [],
         num_opt_passes = 1,
         transpiler_type = "tfhe",
         **kwargs):
@@ -305,7 +306,7 @@ def fhe_cc_library(
         name = name,
         srcs = [":" + transpiled_source],
         hdrs = [":" + transpiled_headers] + hdrs,
-        copts = ["-O0"],
+        copts = ["-O0"] + copts,
         tags = tags,
         deps = deps,
         **kwargs
