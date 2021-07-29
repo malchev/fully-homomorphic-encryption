@@ -1,6 +1,8 @@
 #ifndef STACK_MACHINE_DISPATCH_IMPL
 #define STACK_MACHINE_DISPATCH_IMPL
 
+#include "stack_machine.h"
+
 #undef DEBUG
 
 #ifdef DEBUG

@@ -55,11 +55,11 @@
 #define MAX_OP  20
 
 // Max depth of operand stack
-#define MAX_OPD 1024
+#define MAX_OPD 50
 // Maximum number of commands and command-operands (i.e. "push 1" counts as 2 entries)
-#define MAX_CMD 1024
+#define MAX_CMD 50
 // Maximum number of nested function call
-#define MAX_CALLS 999
+#define MAX_CALLS 10
 
 struct StackMachine {
 
