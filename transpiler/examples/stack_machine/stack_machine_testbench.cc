@@ -4,7 +4,7 @@
 #include "stack_machine_parser.h"
 
 int main(int argc, char **argv) {
-	StackMachine calc;
+	StackMachine sm;
 
 	// Adapted from https://en.wikipedia.org/wiki/Stack-oriented_programming#Anatomy_of_some_typical_procedures
 	const char *const fib7 = \
@@ -21,19 +21,20 @@ int main(int argc, char **argv) {
 		std::cout << "Using following program to compute the 7th fibonacci number:" << std::endl << prog << std::endl;
 	}
 
-	if (!StackMachineParser(std::string(prog), calc)) {
+	if (!StackMachineParser(std::string(prog), sm)) {
 		std::cerr << "Invalid program" << std::endl;
 		return 1;
 	}
 
+	sm = stack_machine_compute(sm, -1);
 	int res = 0;
-	int status = stack_machine_compute(calc, -1, res);
-	if (status == STATUS_HALT) {
-		std::cout << res << std::endl;
+	bool halted = stack_machine_result(sm, res);
+	if (halted) {
+		std::cout << "result: " << res << std::endl;
 	}
 	else {
-		std::cerr << "error " << status << std::endl;
+		std::cerr << "error: " << sm.status << std::endl;
 	}
 
-	return status;
+	return sm.status;
 }

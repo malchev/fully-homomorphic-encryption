@@ -3,6 +3,4 @@
 
 #include "stack_machine.h"
 
-int stack_machine_tick(StackMachine &calc, int &result);
-
 #endif//STACK_MACHINE_TICK_H

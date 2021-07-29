@@ -11,11 +11,12 @@
 #include "transpiler/examples/stack_machine/stack_machine_tick_tfhe.h"
 #include "transpiler/examples/stack_machine/stack_machine_tick_tfhe.types.h"
 #endif
+#include "xls/common/logging/logging.h"
 
 constexpr int kMainMinimumLambda = 120;
 
 int main(int argc, char **argv) {
-	StackMachine stack_machine;
+	StackMachine next;
 
 	// Adapted from https://en.wikipedia.org/wiki/Stack-oriented_programming#Anatomy_of_some_typical_procedures
 	const char *const fib7 = \
@@ -32,7 +33,7 @@ int main(int argc, char **argv) {
 		std::cout << "Using following program to compute the 7th fibonacci number:" << std::endl << prog << std::endl;
 	}
 
-	if (!StackMachineParser(std::string(prog), stack_machine)) {
+	if (!StackMachineParser(std::string(prog), next)) {
 		std::cerr << "Invalid program" << std::endl;
 		return 1;
 	}
@@ -51,37 +52,40 @@ int main(int argc, char **argv) {
 	const TFheGateBootstrappingCloudKeySet* cloud_key = &key->cloud;
 
 	FheStackMachine fhe_stack_machine(params);
-	fhe_stack_machine.SetEncrypted(stack_machine, key);
+	fhe_stack_machine.SetEncrypted(next, key);
 
 	// Round-trip test: decrypt the stack machine and run the calculation:
-    std::cout << "Round-trip test: decrypt the stack machine and run the calculation" << std::endl;	
-	StackMachine round_trip = fhe_stack_machine.Decrypt(key);
-
-	int res = 0;
-	int status = stack_machine_compute(round_trip, -1, res);
-	if (status == STATUS_HALT) {
-		std::cout << "Result: " << res << std::endl;
+	{
+		std::cout << "Round-trip test: decrypt the stack machine and run the calculation." << std::endl;	
+		StackMachine sm = fhe_stack_machine.Decrypt(key);
+		sm = stack_machine_compute(sm, -1);
+		int res = 0;
+		bool halted = stack_machine_result(sm, res);
+		if (halted) {
+			std::cout << "result: " << res << std::endl;
+		}
+		else {
+			std::cerr << "error: " << sm.status << std::endl;
+		}
 	}
-	else {
-		std::cerr << "error " << status << std::endl;
-	}
-
-	return status;
 
 	std::cout << "Starting computation." << std::endl;
 
-	{
-		FheInt fhe_status(params);
-		FheInt fhe_result(params);
-		fhe_stack_machine.SetEncrypted(stack_machine, key);
+	for (int gas = 0;; gas++) {
+		FheStackMachine fhe_next(params);
 
-		XLS_CHECK_OK(stack_machine_tick(fhe_status.get(), fhe_stack_machine.get(), fhe_result.get(), cloud_key));
+		XLS_CHECK_OK(__stack_machine_tick(fhe_next.get(), fhe_stack_machine.get(), cloud_key));
 
-		int status = fhe_status.Decrypt(key);
-		int result = fhe_result.Decrypt(key);
+		StackMachine next = fhe_next.Decrypt(key);
+		do {
+			printf("%-8d %-2d:", gas, next.commands[next.step]);
+			for (int n = 0; n < next.top; n++) {
+				printf(" %-8d", next.stack[n]);
+			}
+			printf("\n");
+		} while(false);
 
-		std::cout << "status: " << status << std::endl;
-		std::cout << "result: " << result << std::endl;
+		fhe_stack_machine = fhe_next;
 	}
 
 	return 0;
