@@ -75,3 +75,21 @@ cc_binary(
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
+
+cc_binary(
+    name = "stack_machine_tick_interpreted_tfhe_testbench",
+    srcs = ["stack_machine_tick_tfhe_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_TFHE"],
+    deps = [
+        ":stack_machine_tick_interpreted_tfhe",
+        ":stack_machine_parser",
+        "//transpiler/data:fhe_data",
+        "@com_google_absl//absl/base",
+        "@com_google_absl//absl/status",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+
