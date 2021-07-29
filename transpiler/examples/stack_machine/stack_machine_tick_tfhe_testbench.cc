@@ -74,9 +74,18 @@ int main(int argc, char **argv) {
 	for (int gas = 0;; gas++) {
 		FheStackMachine fhe_next(params);
 
+		absl::Time start_time = absl::Now();
+		double cpu_start_time = clock();
 		XLS_CHECK_OK(__stack_machine_tick(fhe_next.get(), fhe_stack_machine.get(), cloud_key));
+		double cpu_end_time = clock();
+		absl::Time end_time = absl::Now();
+		std::cout << "\tComputation done" << std::endl;
+		std::cout << "\t\tTotal time: "
+			<< absl::ToDoubleSeconds(end_time - start_time) << " secs" << std::endl;
+		std::cout << "\t\t  CPU time: "
+			<< (cpu_end_time - cpu_start_time) / 1'000'000 << " secs" << std::endl;
 
-		StackMachine next = fhe_next.Decrypt(key);
+		next = fhe_next.Decrypt(key);
 		do {
 			printf("%-8d %-2d:", gas, next.commands[next.step]);
 			for (int n = 0; n < next.top; n++) {
@@ -85,7 +94,7 @@ int main(int argc, char **argv) {
 			printf("\n");
 		} while(false);
 
-		fhe_stack_machine = fhe_next;
+		fhe_stack_machine.SetEncrypted(next, key);
 	}
 
 	return 0;
