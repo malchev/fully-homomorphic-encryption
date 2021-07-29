@@ -63,15 +63,30 @@
 
 struct StackMachine {
 
-	StackMachine() : top(0), call(0), step(0) {}
+	StackMachine(int entry = 0) : step(entry), top(0), call(0), status(STATUS_OK) {}
 
 	int commands[MAX_CMD];
+	int step;
+
 	int stack[MAX_OPD];
 	int top;
+
 	int callstack[MAX_CALLS];
 	int call;
-	int step;
+
+	int status;
 };
+
+static bool inline stack_machine_result(const StackMachine &sm, int &res) {
+	if (sm.status != STATUS_HALT) {
+		return false;
+	}
+	if (!sm.top) {
+		return false;
+	}
+	res = sm.stack[sm.top - 1];
+	return true;
+}
 
 // NOTE: The fhe_cc_library bazel command can handle only one file.  Since we
 // want to build two FHE targets, one with tick() as the top function, and the
@@ -85,8 +100,8 @@ struct StackMachine {
 
 #else//defined EXCLUDE_STACK_MACHINE_IMPLEMENTATION
 
-int stack_machine_tick(StackMachine &calc, int &res);
-int stack_machine_compute(StackMachine &calc, int max_gas, int &res);
+StackMachine stack_machine_tick(const StackMachine &calc);
+StackMachine stack_machine_compute(const StackMachine &calc, int max_gas);
 
 #endif//EXCLUDE_STACK_MACHINE_IMPLEMENTATION
 
