@@ -63,7 +63,17 @@
 
 struct StackMachine {
 
-	StackMachine(int entry = 0) : step(entry), top(0), call(0), status(STATUS_OK) {}
+	StackMachine(int entry = 0) : step(entry), top(0), call(0), status(STATUS_OK) {
+		for (int i = 0; i < MAX_CMD; i++) {
+			commands[i] = 0;
+		}
+		for (int i = 0; i < MAX_OPD; i++) {
+			stack[i] = 0;
+		}
+		for (int i = 0; i < MAX_CALLS; i++) {
+			callstack[i] = 0;
+		}
+	}
 
 	int commands[MAX_CMD];
 	int step;
