@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	sm = stack_machine_compute(sm, -1);
+	stack_machine_compute(sm, -1);
 	int res = 0;
 	bool halted = stack_machine_result(sm, res);
 	if (halted) {

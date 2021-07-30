@@ -12,81 +12,81 @@
 #define PRINT(...) do {} while(false)
 #endif
 
-int handle_call(StackMachine &sm) {
+void handle_call(StackMachine &sm) {
 	if (sm.step == MAX_CMD) {
-		return STATUS_MAX_COMMANDS;
+		sm.status = STATUS_MAX_COMMANDS; return;
 	}
 	if (sm.call == MAX_CALLS) {
-		return STATUS_MAX_CALLS;
+		sm.status = STATUS_MAX_CALLS; return;
 	}
 	int target = sm.commands[sm.step];
 	sm.step++;
 	sm.callstack[sm.call] = sm.step;
 	sm.call++;
 	sm.step = target;
-	return STATUS_OK;
+	sm.status = STATUS_OK; return;
 }
 
-int handle_ret(StackMachine &sm) {
+void handle_ret(StackMachine &sm) {
 	if (sm.call == 0) {
 		if (sm.top == 0) {
-			return STATUS_EMPTY_STACK;
+			sm.status = STATUS_EMPTY_STACK; return;
 		}
-		return STATUS_HALT;
+		sm.status = STATUS_HALT; return;
 	}
 	else {
 		--sm.call;
 		sm.step = sm.callstack[sm.call];
 	}
-	return STATUS_OK;
+	sm.status = STATUS_OK; return;
 }
 
-int handle_push(StackMachine &sm) {
+void handle_push(StackMachine &sm) {
 	if (sm.step == MAX_CMD) {
-		return STATUS_MAX_COMMANDS;
+		sm.status = STATUS_MAX_COMMANDS; return;
 	}
 	if (sm.top == MAX_OPD) {
-		return STATUS_EXCEEDED_MAX_OPERANDS;
+		sm.status = STATUS_EXCEEDED_MAX_OPERANDS; return;
 	}
 	int val = sm.commands[sm.step];
 	sm.step++;
 	sm.stack[sm.top] = val;
 	sm.top++;
-	return STATUS_OK;
+	sm.status = STATUS_OK; return;
 }
 
-int handle_pop(StackMachine &sm) {
+void handle_pop(StackMachine &sm) {
 	if (sm.top == 0) {
-		return STATUS_EMPTY_STACK;
+		sm.status = STATUS_EMPTY_STACK; return;
 	}
 	--sm.top;
-	return STATUS_OK;
+	sm.status = STATUS_OK; return;
 }
 
-int handle_dup(StackMachine &sm) {
+void handle_dup(StackMachine &sm) {
 	if (sm.top == 0) {
-		return STATUS_EMPTY_STACK;
+		sm.status = STATUS_EMPTY_STACK; return;
 	}
 	int top = sm.stack[sm.top-1];
 	sm.stack[sm.top] = top;
 	sm.top++;
-	return STATUS_OK;
+	sm.status = STATUS_OK; return;
 }
 
-int handle_j(StackMachine &sm) {
+void handle_j(StackMachine &sm) {
 	if (sm.step == MAX_CMD) {
-		return STATUS_MAX_COMMANDS;
+		sm.status = STATUS_MAX_COMMANDS; return;
 	}
 	sm.step = sm.commands[sm.step];
-	return STATUS_OK;
+	sm.status = STATUS_OK; return;
 }
 
-int handle_j_cond(StackMachine &sm, bool want_zero) {
+void handle_j_cond(StackMachine &sm, bool want_zero) {
 	if (sm.step == MAX_CMD) {
-		return STATUS_MAX_COMMANDS;
+		sm.status = STATUS_MAX_COMMANDS; return;
 	}
 	if (sm.top == 0) {
-		return STATUS_EMPTY_STACK;
+		sm.status = STATUS_EMPTY_STACK; return;
 	}
 	int target = sm.commands[sm.step];
 	sm.step++;
@@ -95,42 +95,42 @@ int handle_j_cond(StackMachine &sm, bool want_zero) {
 	if (!(want_zero ^ is_zero)) {
 		sm.step = target;
 	}
-	return STATUS_OK;
+	sm.status = STATUS_OK; return;
 }
 
-int handle_jz(StackMachine &sm) {
+void handle_jz(StackMachine &sm) {
 	return handle_j_cond(sm, true);
 }
 
-int handle_jnz(StackMachine &sm) {
+void handle_jnz(StackMachine &sm) {
 	return handle_j_cond(sm, false);
 }
 
-int handle_not(StackMachine &sm) {
+void handle_not(StackMachine &sm) {
 	if (sm.top < 1) {
-		return STATUS_NOT_ENOUGH_OPERANDS;
+		sm.status = STATUS_NOT_ENOUGH_OPERANDS; return;
 	}
 	--sm.top;
 	int op1 = sm.stack[sm.top];
 	sm.stack[sm.top] = !op1;
 	sm.top++;
-	return STATUS_OK;
+	sm.status = STATUS_OK; return;
 }
 
-int handle_bnot(StackMachine &sm) {
+void handle_bnot(StackMachine &sm) {
 	if (sm.top < 1) {
-		return STATUS_NOT_ENOUGH_OPERANDS;
+		sm.status = STATUS_NOT_ENOUGH_OPERANDS; return;
 	}
 	--sm.top;
 	int op1 = sm.stack[sm.top];
 	sm.stack[sm.top] = ~op1;
 	sm.top++;
-	return STATUS_OK;
+	sm.status = STATUS_OK; return;
 }
 
-int handle_swap(StackMachine &sm) {
+void handle_swap(StackMachine &sm) {
 	if (sm.top < 2) {
-		return STATUS_NOT_ENOUGH_OPERANDS;
+		sm.status = STATUS_NOT_ENOUGH_OPERANDS; return;
 	}
 	--sm.top;
 	int ontop = sm.stack[sm.top];
@@ -140,7 +140,7 @@ int handle_swap(StackMachine &sm) {
 	sm.top++;
 	sm.stack[sm.top] = below;
 	sm.top++;
-	return STATUS_OK;
+	sm.status = STATUS_OK; return;
 }
 
 int do_add(int op1, int op2) { return op1 + op2; }
@@ -153,9 +153,9 @@ int do_bor(int op1, int op2) { return op1 | op2; }
 int do_bxor(int op1, int op2) { return op1 ^ op2; }
 int do_eq(int op1, int op2) { return op1 == op2; }
 
-int handle_binary_op(StackMachine &sm, int op) {
+void handle_binary_op(StackMachine &sm, int op) {
 	if (sm.top < 2) {
-		return STATUS_NOT_ENOUGH_OPERANDS;
+		sm.status = STATUS_NOT_ENOUGH_OPERANDS; return;
 	}
 	--sm.top;
 	int op1 = sm.stack[sm.top];
@@ -172,70 +172,67 @@ int handle_binary_op(StackMachine &sm, int op) {
 		case OP_BXOR : { sm.stack[sm.top] = do_bxor(op1, op2); break; }
 		case OP_EQ   : { sm.stack[sm.top] = do_eq(op1, op2); break; }
 		default:
-			return STATUS_UNKNOWN_OPCODE; //internal error
+			sm.status = STATUS_UNKNOWN_OPCODE; return; //internal error
 	}
 	sm.top++;
-	return STATUS_OK;
+	sm.status = STATUS_OK;
 }
 
-StackMachine stack_machine_tick(const StackMachine &sm) {
-	StackMachine next = sm;
-
-	if (next.step == MAX_CMD) {
-		next.status = STATUS_MAX_COMMANDS;
-		return next;
+void stack_machine_tick(StackMachine &sm) {
+	if (sm.step == MAX_CMD) {
+		sm.status = STATUS_MAX_COMMANDS;
+		return;
 	}
-	int cmd = next.commands[next.step];
-	next.step++;
+	int cmd = sm.commands[sm.step];
+	sm.step++;
 
 	if (cmd < 0) {
-		next.status = STATUS_UNKNOWN_OPCODE;
-		return next;
+		sm.status = STATUS_UNKNOWN_OPCODE;
+		return;
 	}
 	if (cmd < BINARY_OP_BASE) {
 		switch(cmd) {
-			case OP_CALL:  next.status = handle_call(next); return next;
-			case OP_RET:   next.status = handle_ret(next);  return next;
-			case OP_PUSH:  next.status = handle_push(next); return next;
-			case OP_POP:   next.status = handle_pop(next);  return next;
-			case OP_J:     next.status = handle_j(next);    return next;
-			case OP_JZ:    next.status = handle_jz(next);   return next;
-			case OP_JNZ:   next.status = handle_jnz(next);  return next;
-			case OP_DUP:   next.status = handle_dup(next);  return next;
-			case OP_SWAP:  next.status = handle_swap(next); return next;
-			case OP_NOT:   next.status = handle_not(next);  return next;
-			case OP_BNOT:  next.status = handle_bnot(next); return next;
+			case OP_CALL: handle_call(sm); return;
+			case OP_RET:  handle_ret(sm);  return;
+			case OP_PUSH: handle_push(sm); return;
+			case OP_POP:  handle_pop(sm);  return;
+			case OP_J:    handle_j(sm);    return;
+			case OP_JZ:   handle_jz(sm);   return;
+			case OP_JNZ:  handle_jnz(sm);  return;
+			case OP_DUP:  handle_dup(sm);  return;
+			case OP_SWAP: handle_swap(sm); return;
+			case OP_NOT:  handle_not(sm);  return;
+			case OP_BNOT: handle_bnot(sm); return;
 		default:
-			next.status = STATUS_UNKNOWN_OPCODE; //internal error
-			return next;
+			sm.status = STATUS_UNKNOWN_OPCODE; //internal error
+			return;
 		}
 	}
 	if (cmd < MAX_OP) {
-		next.status = handle_binary_op(next, cmd);
-		return next;
+		handle_binary_op(sm, cmd);
+		return;
 	}
-	next.status = STATUS_UNKNOWN_OPCODE;
-	return next;
+	sm.status = STATUS_UNKNOWN_OPCODE;
+	return;
 }
 
-StackMachine stack_machine_compute(const StackMachine &sm, int max_gas) {
-	StackMachine next = sm;
+void stack_machine_compute(StackMachine &sm, int max_gas) {
 	for (int gas = 0; (max_gas >= 0 && gas < max_gas) || (max_gas < 0); gas++) {
 #ifdef DEBUG
 		do {
-			printf("%-8d %c:", gas, next.commands[next.step]);
-			for (int n = 0; n < next.top; n++) {
-				printf(" %-8d", next.stack[n]);
+			printf("%-8d %c:", gas, sm.commands[sm.step]);
+			for (int n = 0; n < sm.top; n++) {
+				printf(" %-8d", sm.stack[n]);
 			}
 			printf("\n");
 		} while(false);
 #endif
-		next = stack_machine_tick(next);
-		if (next.status != STATUS_OK)
-			return next;
+		stack_machine_tick(sm);
+		if (sm.status != STATUS_OK)
+			return;
 	}
-    next.status = STATUS_RAN_OUT_OF_GAS;
-	return next;
+    sm.status = STATUS_RAN_OUT_OF_GAS;
+	return;
 }
 
 #endif//STACK_MACHINE_SWITCH_IMPL

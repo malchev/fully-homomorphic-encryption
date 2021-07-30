@@ -16,7 +16,6 @@
 constexpr int kMainMinimumLambda = 120;
 
 int main(int argc, char **argv) {
-	StackMachine next;
 
 	// Adapted from https://en.wikipedia.org/wiki/Stack-oriented_programming#Anatomy_of_some_typical_procedures
 	const char *const fib7 = \
@@ -33,9 +32,15 @@ int main(int argc, char **argv) {
 		std::cout << "Using following program to compute the 7th fibonacci number:" << std::endl << prog << std::endl;
 	}
 
+	StackMachine next;
+
 	if (!StackMachineParser(std::string(prog), next)) {
 		std::cerr << "Invalid program" << std::endl;
 		return 1;
+	}
+	if (next.status != STATUS_OK) {
+		std::cerr << "Newly constructed StackMachine status is not OK: " << next.status << std::endl;
+		return next.status;
 	}
 
 	// Generate a keyset.
@@ -58,7 +63,7 @@ int main(int argc, char **argv) {
 	{
 		std::cout << "Round-trip test: decrypt the stack machine and run the calculation." << std::endl;	
 		StackMachine sm = fhe_stack_machine.Decrypt(key);
-		sm = stack_machine_compute(sm, -1);
+		stack_machine_compute(sm, -1);
 		int res = 0;
 		bool halted = stack_machine_result(sm, res);
 		if (halted) {
@@ -71,30 +76,51 @@ int main(int argc, char **argv) {
 
 	std::cout << "Starting computation." << std::endl;
 
-	for (int gas = 0;; gas++) {
-		FheStackMachine fhe_next(params);
-
+	for (int gas = 0; next.status == STATUS_OK; gas++) {
 		absl::Time start_time = absl::Now();
+
+		std::cout << "\tTick: " << gas << std::endl;
 		double cpu_start_time = clock();
-		XLS_CHECK_OK(__stack_machine_tick(fhe_next.get(), fhe_stack_machine.get(), cloud_key));
+		XLS_CHECK_OK(__stack_machine_tick(fhe_stack_machine.get(), cloud_key));
 		double cpu_end_time = clock();
 		absl::Time end_time = absl::Now();
-		std::cout << "\tComputation done" << std::endl;
-		std::cout << "\t\tTotal time: "
+		std::cout << "\t\tTick " << gas << " done" << std::endl;
+		std::cout << "\t\t\tTotal time: "
 			<< absl::ToDoubleSeconds(end_time - start_time) << " secs" << std::endl;
-		std::cout << "\t\t  CPU time: "
+		std::cout << "\t\t\tCPU time: "
 			<< (cpu_end_time - cpu_start_time) / 1'000'000 << " secs" << std::endl;
 
-		next = fhe_next.Decrypt(key);
+		next = fhe_stack_machine.Decrypt(key);
+
+		std::cout << "\t\tStackMachine: " << gas << std::endl;
 		do {
-			printf("%-8d %-2d:", gas, next.commands[next.step]);
+			printf("\t\t\t%-8d status: %-2d cmd: %-2d top: %-2d call: %-2d\n", gas, next.status, next.commands[next.step], next.top, next.call);
+			printf("\t\t\tprogram:");
+			for (int n = 0; n < MAX_CMD; n++) {
+				int cmd = next.commands[n];
+				printf(" %-8d", cmd);
+			}
+			printf("\n");
+			printf("\t\t\tstack:");
 			for (int n = 0; n < next.top; n++) {
 				printf(" %-8d", next.stack[n]);
 			}
 			printf("\n");
+			printf("\t\t\tcallstack:");
+			for (int n = 0; n < next.call; n++) {
+				printf(" %-8d", next.callstack[n]);
+			}
+			printf("\n");
 		} while(false);
+	}
 
-		fhe_stack_machine.SetEncrypted(next, key);
+	int res = 0;
+	bool halted = stack_machine_result(next, res);
+	if (halted) {
+		std::cout << "result: " << res << std::endl;
+	}
+	else {
+		std::cerr << "error: " << next.status << std::endl;
 	}
 
 	return 0;
