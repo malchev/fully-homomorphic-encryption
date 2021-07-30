@@ -8,9 +8,7 @@
 #include "stack_machine_parser.h"
 #include "stack_machine.h"
 
-bool StackMachineParser(const std::string &prog, StackMachine &calc) {
-	StackMachine res;
-
+bool StackMachineParser(const std::string &prog, StackMachine &sm) {
 	std::istringstream iss(prog);
 	std::vector<std::string> tokens{std::istream_iterator<std::string>{iss},
 		                       std::istream_iterator<std::string>{}};
@@ -55,92 +53,92 @@ bool StackMachineParser(const std::string &prog, StackMachine &calc) {
 		if (tok == "push") {
 			int val; parse_argument(val);
 			check_cmd_index(next_cmd_index + 1);
-			calc.commands[next_cmd_index++] = OP_PUSH;
-			calc.commands[next_cmd_index++] = val;
+			sm.commands[next_cmd_index++] = OP_PUSH;
+			sm.commands[next_cmd_index++] = val;
 		}
 		else if (tok == "pop") {
 			check_cmd_index(next_cmd_index);
-			calc.commands[next_cmd_index++] = OP_POP;
+			sm.commands[next_cmd_index++] = OP_POP;
 		}
 		else if (tok == "jump") {
 			int val; parse_argument(val);
 			check_cmd_index(next_cmd_index + 1);
-			calc.commands[next_cmd_index++] = OP_J;
-			calc.commands[next_cmd_index++] = val;
+			sm.commands[next_cmd_index++] = OP_J;
+			sm.commands[next_cmd_index++] = val;
 		}
 		else if (tok == "jz") {
 			int val; parse_argument(val);
 			check_cmd_index(next_cmd_index + 1);
-			calc.commands[next_cmd_index++] = OP_JZ;
-			calc.commands[next_cmd_index++] = val;
+			sm.commands[next_cmd_index++] = OP_JZ;
+			sm.commands[next_cmd_index++] = val;
 		}
 		else if (tok == "jnz") {
 			int val; parse_argument(val);
 			check_cmd_index(next_cmd_index + 1);
-			calc.commands[next_cmd_index++] = OP_JNZ;
-			calc.commands[next_cmd_index++] = val;
+			sm.commands[next_cmd_index++] = OP_JNZ;
+			sm.commands[next_cmd_index++] = val;
 		}
 		else if (tok == "dup") {
 			check_cmd_index(next_cmd_index);
-			calc.commands[next_cmd_index++] = OP_DUP;
+			sm.commands[next_cmd_index++] = OP_DUP;
 		}
 		else if (tok == "swap") {
 			check_cmd_index(next_cmd_index);
-			calc.commands[next_cmd_index++] = OP_SWAP;
+			sm.commands[next_cmd_index++] = OP_SWAP;
 		}
 		else if (tok == "eq") {
 			check_cmd_index(next_cmd_index);
-			calc.commands[next_cmd_index++] = OP_EQ;
+			sm.commands[next_cmd_index++] = OP_EQ;
 		}
 		else if (tok == "and") {
 			check_cmd_index(next_cmd_index);
-			calc.commands[next_cmd_index++] = OP_AND;
+			sm.commands[next_cmd_index++] = OP_AND;
 		}
 		else if (tok == "or") {
 			check_cmd_index(next_cmd_index);
-			calc.commands[next_cmd_index++] = OP_OR;
+			sm.commands[next_cmd_index++] = OP_OR;
 		}
 		else if (tok == "not") {
 			check_cmd_index(next_cmd_index);
-			calc.commands[next_cmd_index++] = OP_NOT;
+			sm.commands[next_cmd_index++] = OP_NOT;
 		}
 		else if (tok == "&") {
 			check_cmd_index(next_cmd_index);
-			calc.commands[next_cmd_index++] = OP_BAND;
+			sm.commands[next_cmd_index++] = OP_BAND;
 		}
 		else if (tok == "|") {
 			check_cmd_index(next_cmd_index);
-			calc.commands[next_cmd_index++] = OP_BOR;
+			sm.commands[next_cmd_index++] = OP_BOR;
 		}
 		else if (tok == "^") {
 			check_cmd_index(next_cmd_index);
-			calc.commands[next_cmd_index++] = OP_BXOR;
+			sm.commands[next_cmd_index++] = OP_BXOR;
 		}
 		else if (tok == "~") {
 			check_cmd_index(next_cmd_index);
-			calc.commands[next_cmd_index++] = OP_BNOT;
+			sm.commands[next_cmd_index++] = OP_BNOT;
 		}
 		else if (tok == "call") {
 			int val; parse_argument(val);
 			check_cmd_index(next_cmd_index + 1);
-			calc.commands[next_cmd_index++] = OP_CALL;
-			calc.commands[next_cmd_index++] = val;
+			sm.commands[next_cmd_index++] = OP_CALL;
+			sm.commands[next_cmd_index++] = val;
 		}
 		else if (tok == "ret") {
 			check_cmd_index(next_cmd_index);
-			calc.commands[next_cmd_index++] = OP_RET;
+			sm.commands[next_cmd_index++] = OP_RET;
 		}
 		else if (tok == "add") {
 			check_cmd_index(next_cmd_index);
-			calc.commands[next_cmd_index++] = OP_ADD;
+			sm.commands[next_cmd_index++] = OP_ADD;
 		}
 		else if (tok == "sub") {
 			check_cmd_index(next_cmd_index);
-			calc.commands[next_cmd_index++] = OP_SUB;
+			sm.commands[next_cmd_index++] = OP_SUB;
 		}
 		else if (tok == "mul") {
 			check_cmd_index(next_cmd_index);
-			calc.commands[next_cmd_index++] = OP_MUL;
+			sm.commands[next_cmd_index++] = OP_MUL;
 		}
 		else {
 			std::cerr << "Unknown command '" << tok << "'" << std::endl;   \

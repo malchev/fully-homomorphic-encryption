@@ -110,8 +110,8 @@ static bool inline stack_machine_result(const StackMachine &sm, int &res) {
 
 #else//defined EXCLUDE_STACK_MACHINE_IMPLEMENTATION
 
-StackMachine stack_machine_tick(const StackMachine &calc);
-StackMachine stack_machine_compute(const StackMachine &calc, int max_gas);
+void stack_machine_tick(const StackMachine &calc);
+void stack_machine_compute(const StackMachine &calc, int max_gas);
 
 #endif//EXCLUDE_STACK_MACHINE_IMPLEMENTATION
 
