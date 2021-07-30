@@ -106,7 +106,7 @@ static bool inline stack_machine_result(const StackMachine &sm, int &res) {
 
 #ifndef EXCLUDE_STACK_MACHINE_IMPLEMENTATION
 
-#include "stack_machine_switch_impl.h"
+#include "stack_machine_chainedifs_impl.h"
 
 #else//defined EXCLUDE_STACK_MACHINE_IMPLEMENTATION
 
