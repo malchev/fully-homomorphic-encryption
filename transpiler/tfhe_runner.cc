@@ -152,7 +152,7 @@ absl::Status TfheRunner::HandleBitSlice(
   }
 
   std::string param_name = operand->GetName();
-  if (operand->GetType()->GetFlatBitCount() == 1) {
+  if (operand->GetType()->GetFlatBitCount() >= 1) {
     if (operand->Is<xls::TupleIndex>() || operand->Is<xls::ArrayIndex>()) {
       param_name = operand->operand(0)->GetName();
     }
