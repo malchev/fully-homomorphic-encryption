@@ -243,9 +243,81 @@ absl::Status TfheRunner::CollectOutputs(
 
   std::vector<const xls::Node*> elements;
   const xls::Type* type = return_value->GetType();
+
+  // The return value can be a tuple in two cases:
+  //
+  // Case A:
+  //    StructA foo(StructB in)
+  //    void foo(Struct &in)
+  // Case B:
+  //    StructR foo(StructA a, StructB &b)
+  //    StructR foo(StructA &a, StructB b)
+  //    void foo(StructA &a, StructB &b)
+  //
+  // IOW, Case A is when a function returns a single struct (either explicitly
+  // or as an non-const reference, this struct is represented as a tuple in the
+  // return type.  CaseB is when multiple values are returned (via some
+  // combination of a return value and one or more non-const references, or a
+  // void return and two or more non-const references.
+  //
+  // Thus in case A we want to append to elements, while in case B we want to
+  // splice the results tuple in.
+  //
+  // In both cases, type->kind() will be a kTuple, so we need an additional
+  // check to tell cases A and B apart.
+
   if (type->kind() == xls::TypeKind::kTuple) {
-    elements.insert(elements.begin(), return_value->operands().begin(),
-                    return_value->operands().end());
+    auto top_func_proto = metadata_.top_func_proto();
+    auto params = top_func_proto.params();
+    auto return_type = top_func_proto.return_type();
+    if (return_type.has_as_void()) {
+      // If there is a single in-out parameter, then we have Case A.  If more
+      // than one, then case B. (We assert that there must be at least one
+      // in-out parameter further below.)
+      auto p = params.cbegin();
+      int num_inout = 0;
+      while (p != params.cend()) {
+        if (!p->is_const() && p->is_reference()) {
+          num_inout++;
+        }
+        p++;
+      }
+      if (num_inout == 1) {
+        // Case A.
+        elements.push_back(return_value);
+      }
+      else {
+        // Case B.
+        elements.insert(elements.begin(), return_value->operands().begin(),
+                        return_value->operands().end());
+      }
+    }
+    else if (return_type.has_as_inst()) {
+      // If the return type ID matches one of the parameters, we have Case A,
+      // else Case B.
+      auto p = params.cbegin();
+      while (p != params.cend()) {
+        if (p->has_type()
+                && p->type().has_as_inst()
+                && p->type().as_inst().has_name()
+                && p->type().as_inst().name().id() == return_type.as_inst().name().id()) {
+          // Case A.
+          elements.push_back(return_value);
+          break;
+        }
+        p++;
+      }
+      if (p == top_func_proto.params().cend()) {
+        // Case B.
+        elements.insert(elements.begin(), return_value->operands().begin(),
+                        return_value->operands().end());
+      }
+    }
+    else {
+        // Case B.
+        elements.insert(elements.begin(), return_value->operands().begin(),
+                        return_value->operands().end());
+    }
   } else {
     elements.push_back(return_value);
   }
