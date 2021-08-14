@@ -12,6 +12,6 @@ struct StructWithArray {
   int c;
 };
 
-StructWithArray NegateStructWithArray(StructWithArray input);
+void NegateStructWithArray(StructWithArray &input);
 
 #endif  // TRANSPILER_EXAMPLES_STRUCTS_STRUCT_WITH_ARRAY_H_

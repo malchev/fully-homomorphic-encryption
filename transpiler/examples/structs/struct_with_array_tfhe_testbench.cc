@@ -16,8 +16,14 @@
 #include <iostream>
 
 #include "tfhe/tfhe.h"
+
+#ifdef USE_INTERPRETED_TFHE
+#include "transpiler/examples/structs/struct_with_array_interpreted_tfhe.h"
+#include "transpiler/examples/structs/struct_with_array_interpreted_tfhe.types.h"
+#else
 #include "transpiler/examples/structs/struct_with_array_tfhe.h"
 #include "transpiler/examples/structs/struct_with_array_tfhe.types.h"
+#endif
 #include "xls/common/logging/logging.h"
 
 const int main_minimum_lambda = 120;
@@ -59,11 +65,9 @@ int main(int argc, char** argv) {
   std::cout << "  c: " << round_trip.c << std::endl << std::endl;
 
   std::cout << "Starting computation." << std::endl;
-  FheStructWithArray fhe_result(params);
-  XLS_CHECK_OK(NegateStructWithArray(fhe_result.get(),
-                                     fhe_struct_with_array.get(), cloud_key));
+  XLS_CHECK_OK(NegateStructWithArray(fhe_struct_with_array.get(), cloud_key));
 
-  StructWithArray result = fhe_result.Decrypt(key);
+  StructWithArray result = fhe_struct_with_array.Decrypt(key);
   std::cout << "Done. Result: " << std::endl;
   for (int i = 0; i < A_COUNT; i++) {
     std::cout << "  a[" << i << "]: " << result.a[i] << std::endl;
