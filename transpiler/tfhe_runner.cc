@@ -261,6 +261,10 @@ absl::Status TfheRunner::CollectOutputs(
           "return value requested for a void-returning function");
     }
   } else {
+    if (result == nullptr) {
+      return absl::FailedPreconditionError(
+          "missing return value for a value-returning function");
+    }
     XLS_RETURN_IF_ERROR(
         CollectNodeValue(elements[output_idx++], result, 0, values, bk));
   }
@@ -270,15 +274,23 @@ absl::Status TfheRunner::CollectOutputs(
   for (; output_idx < elements.size(); output_idx++) {
     const xlscc_metadata::FunctionParameter* param;
     while (true) {
+      if (param_idx == fn_params.size()) {
+        return absl::InternalError(absl::StrCat(
+            "No matching in/out param for output %d: ", output_idx));
+      }
+
       param = &fn_params[param_idx++];
       if (!param->is_const() && param->is_reference()) {
         break;
       }
 
-      if (param_idx == fn_params.size()) {
-        return absl::InternalError(absl::StrCat(
-            "No matching in/out param for function param: ", param->name()));
-      }
+      if (!param->has_type()) {
+		return absl::InternalError(absl::StrCat(
+			"Parameter %s has no type.", param->name()));
+	  } else {
+		auto& metaType = param->type();
+		auto* type = elements[output_idx]->GetType();
+	  }
     }
 
     XLS_RETURN_IF_ERROR(CollectNodeValue(elements[output_idx],
