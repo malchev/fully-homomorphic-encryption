@@ -4,14 +4,24 @@
 // Example demonstrating successful manipulation of arrays inside
 // structs.
 #define A_COUNT 3
-#define B_COUNT 4
+#define B_COUNT 3
+#define C_COUNT 3
 
-struct StructWithArray {
-  int a[3];
-  short b[4];
-  int c;
+struct Inner {
+  int c[C_COUNT];
+  short q;
 };
 
-void NegateStructWithArray(StructWithArray &input);
+struct StructWithArray {
+  char c;
+#if 1
+  Inner i;
+  int a[A_COUNT];
+  short b[B_COUNT];
+  short z;
+#endif
+};
+
+void NegateStructWithArray(StructWithArray &input, int &other, Inner &inner);
 
 #endif  // TRANSPILER_EXAMPLES_STRUCTS_STRUCT_WITH_ARRAY_H_
